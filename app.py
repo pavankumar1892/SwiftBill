@@ -1186,7 +1186,139 @@ def toggle_product(product_id):
         url_for("products")
     )
 
+# ============================================================
+# ADMIN USERS
+# ============================================================
 
+@app.route(
+    "/admin/users",
+    methods=["GET", "POST"]
+)
+@login_required
+def admin_users():
+
+    if not admin_required():
+
+        flash(
+            "Only admin can manage users.",
+            "danger"
+        )
+
+        return redirect(
+            url_for("dashboard")
+        )
+
+    if request.method == "POST":
+
+        username = (
+            request.form
+            .get("username", "")
+            .strip()
+        )
+
+        password = (
+            request.form
+            .get("password", "")
+        )
+
+        role = (
+            request.form
+            .get("role", "cashier")
+            .strip()
+            .lower()
+        )
+
+        if not username:
+
+            flash(
+                "Username is required.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_users")
+            )
+
+        if len(password) < 8:
+
+            flash(
+                "Password must be at least 8 characters.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_users")
+            )
+
+        if role not in [
+            "admin",
+            "cashier"
+        ]:
+
+            flash(
+                "Invalid role.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_users")
+            )
+
+        existing_user = (
+            User.query
+            .filter_by(
+                username=username
+            )
+            .first()
+        )
+
+        if existing_user:
+
+            flash(
+                "Username already exists.",
+                "danger"
+            )
+
+            return redirect(
+                url_for("admin_users")
+            )
+
+        new_user = User(
+            username=username,
+            password_hash=generate_password_hash(
+                password
+            ),
+            role=role,
+            is_active_user=True
+        )
+
+        db.session.add(
+            new_user
+        )
+
+        db.session.commit()
+
+        flash(
+            "User created successfully.",
+            "success"
+        )
+
+        return redirect(
+            url_for("admin_users")
+        )
+
+    users = (
+        User.query
+        .order_by(
+            User.username
+        )
+        .all()
+    )
+
+    return render_template(
+        "users.html",
+        users=users
+    )
 # ============================================================
 # SALES HISTORY
 # ============================================================

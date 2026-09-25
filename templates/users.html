@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}
+Users - SwiftBill
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>User Management</h1>
+        <p>Create and manage Admin and Cashier users</p>
+    </div>
+
+</div>
+
+
+<div class="products-layout">
+
+    <div class="card">
+
+        <h2 style="margin-top: 0;">
+            Create User
+        </h2>
+
+        <form method="POST">
+
+            <label>
+                Username
+            </label>
+
+            <input
+                type="text"
+                name="username"
+                placeholder="Example: counter1"
+                required
+            >
+
+            <br><br>
+
+
+            <label>
+                Password
+            </label>
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Minimum 8 characters"
+                required
+            >
+
+            <br><br>
+
+
+            <label>
+                Role
+            </label>
+
+            <select
+                name="role"
+                required
+            >
+
+                <option value="cashier">
+                    Cashier
+                </option>
+
+                <option value="admin">
+                    Admin
+                </option>
+
+            </select>
+
+            <br><br>
+
+
+            <button
+                type="submit"
+                class="product-save-button"
+            >
+                + Create User
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <div>
+
+        <div class="products-section-header">
+
+            <h2 style="margin: 0;">
+                Existing Users
+            </h2>
+
+            <p>
+                Users who can login to SwiftBill
+            </p>
+
+        </div>
+
+
+        {% if users %}
+
+            <div class="manage-product-grid">
+
+                {% for user in users %}
+
+                    <div class="manage-product-card">
+
+                        <div class="manage-product-top">
+
+                            <div>
+
+                                <div class="product-name">
+                                    {{ user.username }}
+                                </div>
+
+                                {% if user.is_active_user %}
+
+                                    <span class="status-badge status-active">
+                                        Active
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="status-badge status-inactive">
+                                        Inactive
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <div>
+
+                                <span class="payment-badge">
+                                    {{ user.role|capitalize }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% else %}
+
+            <div class="empty-state">
+
+                <div class="empty-state-title">
+                    No users found
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

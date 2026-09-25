@@ -71,14 +71,21 @@
 
                 {% if current_user.role == "admin" %}
 
-                <a
-                    href="{{ url_for('products') }}"
-                    class="nav-link"
-                >
-                    Products
-                </a>
+<a
+    href="{{ url_for('products') }}"
+    class="nav-link"
+>
+    Products
+</a>
 
-                {% endif %}
+<a
+    href="{{ url_for('admin_users') }}"
+    class="nav-link"
+>
+    Users
+</a>
+
+{% endif %}
 
                 <a
                     href="{{ url_for('sales_history') }}"
