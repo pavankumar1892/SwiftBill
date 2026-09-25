@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        {% block title %}
+        SwiftBill   
+        {% endblock %}
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+        {% if current_user.is_authenticated %}
+
+        <header class="topbar glass-card">
+
+<div class="brand-block">
+
+    <img
+        src="{{ url_for('static', filename='images/swiftbill_logo.png') }}"
+        alt="SwiftBill Logo"
+        class="brand-logo"
+    >
+
+    <div>
+
+        <div class="brand-title">
+            SwiftBill
+        </div>
+
+        <div class="brand-subtitle">
+            Fast Billing. Smarter Selling.
+        </div>
+
+    </div>
+
+</div>
+
+            <nav class="nav-menu">
+
+                <a
+                    href="{{ url_for('dashboard') }}"
+                    class="nav-link"
+                >
+                    Dashboard
+                </a>
+
+                <a
+                    href="{{ url_for('new_sale') }}"
+                    class="nav-link"
+                >
+                    New Sale
+                </a>
+
+                {% if current_user.role == "admin" %}
+
+                <a
+                    href="{{ url_for('products') }}"
+                    class="nav-link"
+                >
+                    Products
+                </a>
+
+                {% endif %}
+
+                <a
+                    href="{{ url_for('sales_history') }}"
+                    class="nav-link"
+                >
+                    Sales History
+                </a>
+
+                <a
+                    href="{{ url_for('logout') }}"
+                    class="nav-link danger-link"
+                >
+                    Logout
+                </a>
+
+            </nav>
+
+        </header>
+
+        {% endif %}
+
+
+        <main class="page-container">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+
+                {% if messages %}
+
+                    <div class="flash-container">
+
+                        {% for category, message in messages %}
+
+                            <div class="flash-message flash-{{ category }}">
+                                {{ message }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endwith %}
+
+
+            {% block content %}
+            {% endblock %}
+
+        </main>
+
+    </div>
+
+</body>
+
+</html>

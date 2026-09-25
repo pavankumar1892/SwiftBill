@@ -1,0 +1,743 @@
+{% extends "base.html" %}
+
+{% block title %}
+New Sale - Event POS
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>New Sale</h1>
+        <p>Create and complete a customer order</p>
+    </div>
+
+</div>
+
+
+<div class="sale-layout">
+
+    <div class="sale-panel">
+
+        <h2 style="margin-top: 0;">
+            Customer Details
+        </h2>
+
+
+        <div class="customer-grid">
+
+            <div>
+
+                <label>
+                    Mobile Number
+                </label>
+
+                <input
+                    type="text"
+                    id="customerNumber"
+                    placeholder="Enter mobile number"
+                >
+
+            </div>
+
+
+            <div>
+
+                <label>
+                    Customer Name
+                </label>
+
+                <input
+                    type="text"
+                    id="customerName"
+                    placeholder="Customer name"
+                >
+
+            </div>
+
+        </div>
+
+
+        <br>
+
+        <button
+            type="button"
+            onclick="skipCustomer()"
+        >
+            Skip Customer
+        </button>
+
+
+        <hr>
+
+
+        <h2>
+            Select Products
+        </h2>
+
+
+        <div class="product-grid">
+
+            {% for product in products %}
+
+                <button
+                    type="button"
+                    class="product-card pos-product-button"
+                    onclick='addToCart(
+                        {{ product.id }},
+                        {{ product.name|tojson }},
+                        {{ product.price }},
+                        {{ product.discount }},
+                        {{ product.final_price }}
+                    )'
+                >
+
+                    <div class="product-name">
+                        {{ product.name }}
+                    </div>
+
+
+                    {% if product.discount > 0 %}
+
+                        <div style="margin-top: 8px;">
+
+                            <span class="original-price">
+                                ₹{{ "%.2f"|format(product.price) }}
+                            </span>
+
+                            <span class="discount-badge">
+                                {{ "%.0f"|format(product.discount) }}% OFF
+                            </span>
+
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="product-price">
+                        ₹{{ "%.2f"|format(product.final_price) }}
+                    </div>
+
+                    <div class="tap-to-add">
+                        Tap to add
+                    </div>
+
+                </button>
+
+            {% endfor %}
+
+        </div>
+
+
+        {% if not products %}
+
+            <div class="empty-state">
+
+                <div class="empty-state-title">
+                    No active products
+                </div>
+
+                <div class="empty-state-text">
+                    Add products from the Products page first.
+                </div>
+
+            </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="sale-panel cart-panel">
+
+        <div class="cart-heading">
+
+            <div>
+
+                <h2 style="margin: 0;">
+                    Current Order
+                </h2>
+
+                <p style="margin-bottom: 0;">
+                    Review items before billing
+                </p>
+
+            </div>
+
+            <div class="cart-count">
+                <span id="cartItemCount">0</span>
+                items
+            </div>
+
+        </div>
+
+
+        <hr>
+
+
+        <div id="cart">
+
+            <div class="empty-state">
+
+                <div class="empty-state-title">
+                    Your cart is empty
+                </div>
+
+                <div class="empty-state-text">
+                    Select a product to start the order.
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="total-box">
+
+            <div>
+
+                <div class="summary-label">
+                    Grand Total
+                </div>
+
+                <div class="total-value">
+                    ₹<span id="grandTotal">0.00</span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <h3>
+            Payment Mode
+        </h3>
+
+
+        <div class="payment-options">
+
+            <label class="payment-card">
+
+                <input
+                    type="radio"
+                    name="paymentMode"
+                    value="Cash"
+                >
+
+                <span>
+                    Cash
+                </span>
+
+            </label>
+
+
+            <label class="payment-card">
+
+                <input
+                    type="radio"
+                    name="paymentMode"
+                    value="UPI"
+                >
+
+                <span>
+                    UPI
+                </span>
+
+            </label>
+
+        </div>
+
+
+        <br>
+
+
+        <button
+            type="button"
+            class="complete-sale-button"
+            onclick="completeSale()"
+        >
+            Complete Sale
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let cart = {};
+
+
+function addToCart(
+    productId,
+    productName,
+    originalPrice,
+    discount,
+    finalPrice
+) {
+
+    if (cart[productId]) {
+
+        cart[productId].quantity += 1;
+
+    } else {
+
+        cart[productId] = {
+            product_id: productId,
+            name: productName,
+            original_price: originalPrice,
+            discount: discount,
+            final_price: finalPrice,
+            quantity: 1
+        };
+
+    }
+
+    renderCart();
+}
+
+
+function increaseQty(productId) {
+
+    cart[productId].quantity += 1;
+
+    renderCart();
+}
+
+
+function decreaseQty(productId) {
+
+    if (!cart[productId]) {
+        return;
+    }
+
+    if (cart[productId].quantity > 1) {
+
+        cart[productId].quantity -= 1;
+
+    } else {
+
+        delete cart[productId];
+
+    }
+
+    renderCart();
+}
+
+
+function removeItem(productId) {
+
+    delete cart[productId];
+
+    renderCart();
+}
+
+
+function renderCart() {
+
+    const cartElement =
+        document.getElementById("cart");
+
+    const items =
+        Object.values(cart);
+
+    cartElement.innerHTML = "";
+
+    let total = 0;
+
+    let itemCount = 0;
+
+
+    if (items.length === 0) {
+
+        cartElement.innerHTML = `
+            <div class="empty-state">
+
+                <div class="empty-state-title">
+                    Your cart is empty
+                </div>
+
+                <div class="empty-state-text">
+                    Select a product to start the order.
+                </div>
+
+            </div>
+        `;
+
+        document.getElementById(
+            "grandTotal"
+        ).innerText = "0.00";
+
+        document.getElementById(
+            "cartItemCount"
+        ).innerText = "0";
+
+        return;
+    }
+
+
+    items.forEach(item => {
+
+        const itemTotal =
+            item.final_price
+            * item.quantity;
+
+        total += itemTotal;
+
+        itemCount += item.quantity;
+
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "cart-row";
+
+
+        row.innerHTML = `
+
+            <div class="cart-product-top">
+
+                <div>
+
+                    <div class="cart-product-name">
+                        ${item.name}
+                    </div>
+
+                    <div class="cart-product-price">
+                        ₹${item.final_price.toFixed(2)} each
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="remove-button"
+                    onclick="removeItem(${item.product_id})"
+                >
+                    Remove
+                </button>
+
+            </div>
+
+
+            <div class="cart-product-bottom">
+
+                <div class="quantity-control">
+
+                    <button
+                        type="button"
+                        onclick="decreaseQty(${item.product_id})"
+                    >
+                        −
+                    </button>
+
+                    <span>
+                        ${item.quantity}
+                    </span>
+
+                    <button
+                        type="button"
+                        onclick="increaseQty(${item.product_id})"
+                    >
+                        +
+                    </button>
+
+                </div>
+
+
+                <div class="cart-line-total">
+                    ₹${itemTotal.toFixed(2)}
+                </div>
+
+            </div>
+        `;
+
+
+        cartElement.appendChild(
+            row
+        );
+
+    });
+
+
+    document.getElementById(
+        "grandTotal"
+    ).innerText =
+        total.toFixed(2);
+
+
+    document.getElementById(
+        "cartItemCount"
+    ).innerText =
+        itemCount;
+
+}
+
+
+function skipCustomer() {
+
+    document.getElementById(
+        "customerNumber"
+    ).value = "";
+
+    document.getElementById(
+        "customerName"
+    ).value =
+        "Walk-in Customer";
+}
+
+
+let lookupTimer = null;
+
+
+document.getElementById(
+    "customerNumber"
+).addEventListener(
+    "input",
+    function () {
+
+        clearTimeout(
+            lookupTimer
+        );
+
+        const mobile =
+            this.value.trim();
+
+
+        if (!mobile) {
+
+            return;
+
+        }
+
+
+        lookupTimer = setTimeout(
+            async function () {
+
+                try {
+
+                    const response =
+                        await fetch(
+                            `/api/customer/${encodeURIComponent(mobile)}`
+                        );
+
+                    const data =
+                        await response.json();
+
+
+                    if (data.found) {
+
+                        document.getElementById(
+                            "customerName"
+                        ).value =
+                            data.name;
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        error
+                    );
+
+                }
+
+            },
+            350
+        );
+
+    }
+);
+
+
+async function completeSale() {
+
+    const customerNumber =
+        document.getElementById(
+            "customerNumber"
+        ).value.trim();
+
+
+    let customerName =
+        document.getElementById(
+            "customerName"
+        ).value.trim();
+
+
+    const paymentElement =
+        document.querySelector(
+            'input[name="paymentMode"]:checked'
+        );
+
+
+    if (
+        Object.keys(cart).length === 0
+    ) {
+
+        alert(
+            "Please select at least one item."
+        );
+
+        return;
+    }
+
+
+    if (!paymentElement) {
+
+        alert(
+            "Please select Cash or UPI."
+        );
+
+        return;
+    }
+
+
+    if (
+        customerNumber
+        && !customerName
+    ) {
+
+        alert(
+            "Please enter customer name."
+        );
+
+        return;
+    }
+
+
+    if (!customerName) {
+
+        customerName =
+            "Walk-in Customer";
+
+    }
+
+
+    const items =
+        Object.values(cart).map(
+            item => ({
+                product_id:
+                    item.product_id,
+
+                quantity:
+                    item.quantity
+            })
+        );
+
+
+    try {
+
+        const response =
+            await fetch(
+                "/api/complete-sale",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            customer_number:
+                                customerNumber,
+
+                            customer_name:
+                                customerName,
+
+                            payment_mode:
+                                paymentElement.value,
+
+                            items:
+                                items
+                        })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            alert(
+                data.message
+                || "Unable to save sale."
+            );
+
+            return;
+        }
+
+
+        alert(
+            `Sale completed successfully.\n\n`
+            + `Order #${data.sale_id}\n`
+            + `Total ₹${data.total.toFixed(2)}`
+        );
+
+
+        if (
+            data.whatsapp_url
+            && confirm(
+                "Send order details on WhatsApp?"
+            )
+        ) {
+
+            window.open(
+                data.whatsapp_url,
+                "_blank"
+            );
+
+        }
+
+
+        cart = {};
+
+        renderCart();
+
+
+        document.getElementById(
+            "customerNumber"
+        ).value = "";
+
+
+        document.getElementById(
+            "customerName"
+        ).value = "";
+
+
+        const checked =
+            document.querySelector(
+                'input[name="paymentMode"]:checked'
+            );
+
+
+        if (checked) {
+
+            checked.checked = false;
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+        alert(
+            "Something went wrong."
+        );
+
+    }
+
+}
+
+</script>
+
+{% endblock %}

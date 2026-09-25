@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}
+Login - Event POS
+{% endblock %}
+
+{% block content %}
+
+<div class="login-page">
+
+    <div class="login-card">
+
+        <div class="login-logo">
+            POS
+        </div>
+
+        <div class="login-title">
+            Event POS
+        </div>
+
+        <div class="login-subtitle">
+            Sign in to continue
+        </div>
+
+
+        <form method="POST">
+
+            <div class="login-field">
+
+                <label>
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    name="username"
+                    placeholder="Enter username"
+                    autocomplete="username"
+                    required
+                >
+
+            </div>
+
+
+            <div class="login-field">
+
+                <label>
+                    Password
+                </label>
+
+                <div class="password-wrapper">
+
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        placeholder="Enter password"
+                        autocomplete="current-password"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        onclick="togglePassword()"
+                    >
+                        Show
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="login-button"
+            >
+                Sign In
+            </button>
+
+        </form>
+
+
+        <div class="login-footer">
+
+            Event POS
+
+            <br>
+
+            Sales & Billing System
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+function togglePassword() {
+
+    const password =
+        document.getElementById(
+            "password"
+        );
+
+    const button =
+        document.querySelector(
+            ".password-toggle"
+        );
+
+
+    if (
+        password.type === "password"
+    ) {
+
+        password.type = "text";
+
+        button.innerText =
+            "Hide";
+
+    } else {
+
+        password.type =
+            "password";
+
+        button.innerText =
+            "Show";
+
+    }
+
+}
+
+</script>
+
+{% endblock %}

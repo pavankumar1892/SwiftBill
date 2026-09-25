@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+
+{% block title %}
+Sales History - Event POS
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>Sales History</h1>
+        <p>Review completed orders and export reports</p>
+    </div>
+
+<a
+    href="{{ url_for(
+        'export_sales',
+        search=search_query,
+        payment=payment_filter,
+        date=date_filter
+    ) }}"
+>
+    <button type="button">
+        Export Excel
+    </button>
+</a>
+
+</div>
+
+
+<!-- ============================= -->
+<!-- FILTER SECTION -->
+<!-- ============================= -->
+
+<div class="card sales-filter-card">
+
+    <form
+        method="GET"
+        action="{{ url_for('sales_history') }}"
+        class="sales-filter-form"
+    >
+
+        <div>
+
+            <label>
+                Search
+            </label>
+
+            <input
+                type="text"
+                name="search"
+                value="{{ search_query }}"
+                placeholder="Order #, customer name or mobile"
+            >
+
+        </div>
+
+
+        <div>
+
+            <label>
+                Payment
+            </label>
+
+            <select name="payment">
+
+                <option value="">
+                    All Payments
+                </option>
+
+                <option
+                    value="Cash"
+                    {% if payment_filter == "Cash" %}
+                        selected
+                    {% endif %}
+                >
+                    Cash
+                </option>
+
+                <option
+                    value="UPI"
+                    {% if payment_filter == "UPI" %}
+                        selected
+                    {% endif %}
+                >
+                    UPI
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div>
+
+            <label>
+                Date
+            </label>
+
+            <input
+                type="date"
+                name="date"
+                value="{{ date_filter }}"
+            >
+
+        </div>
+
+
+        <div class="sales-filter-actions">
+
+            <button type="submit">
+                Apply Filters
+            </button>
+
+            <a
+                href="{{ url_for('sales_history') }}"
+                class="clear-filter-button"
+            >
+                Clear
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<div style="height: 18px;"></div>
+
+
+<!-- ============================= -->
+<!-- SUMMARY -->
+<!-- ============================= -->
+
+<div class="summary-grid">
+
+    <div class="summary-card">
+
+        <div class="summary-label">
+            Cash Sales
+        </div>
+
+        <div class="summary-value">
+            ₹{{ "%.2f"|format(cash_total) }}
+        </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <div class="summary-label">
+            UPI Sales
+        </div>
+
+        <div class="summary-value">
+            ₹{{ "%.2f"|format(upi_total) }}
+        </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <div class="summary-label">
+            Total Sales
+        </div>
+
+        <div class="summary-value">
+            ₹{{ "%.2f"|format(grand_total) }}
+        </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <div class="summary-label">
+            Total Orders
+        </div>
+
+        <div class="summary-value">
+            {{ sales|length }}
+        </div>
+
+    </div>
+
+</div>
+
+
+<div style="height: 18px;"></div>
+
+
+<!-- ============================= -->
+<!-- SALES LIST -->
+<!-- ============================= -->
+
+<div class="card">
+
+    <div class="sales-header-row">
+
+        <div>
+
+            <h2 style="margin: 0;">
+                Completed Orders
+            </h2>
+
+            <p style="margin-bottom: 0;">
+                Latest orders are shown first
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <br>
+
+
+    {% if sales %}
+
+        <div class="sales-list">
+
+            {% for sale in sales %}
+
+                <div class="sale-history-card">
+
+                    <div class="sale-history-top">
+
+                        <div>
+
+                            <div class="sale-order-number">
+                                Order #{{ sale.id }}
+                            </div>
+
+                            <div class="sale-date">
+
+                                {{
+                                    sale.sale_date.strftime(
+                                        "%d-%m-%Y %I:%M %p"
+                                    )
+                                }}
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="sale-total">
+                            ₹{{ "%.2f"|format(sale.total_amount) }}
+                        </div>
+
+                    </div>
+
+
+                    <div class="sale-meta-grid">
+
+                        <div>
+
+                            <div class="sale-meta-label">
+                                Customer
+                            </div>
+
+                            <div class="sale-meta-value">
+
+                                {{
+                                    sale.customer_name
+                                    or "Walk-in Customer"
+                                }}
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="sale-meta-label">
+                                Mobile
+                            </div>
+
+                            <div class="sale-meta-value">
+
+                                {{
+                                    sale.customer_number
+                                    or "-"
+                                }}
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="sale-meta-label">
+                                Payment
+                            </div>
+
+                            <div class="sale-meta-value">
+
+                                <span class="payment-badge">
+                                    {{ sale.payment_mode }}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="sale-items-box">
+
+                        <div class="sale-items-title">
+                            Items
+                        </div>
+
+
+                        {% for item in sale.items %}
+
+                            <div class="sale-item-row">
+
+                                <div>
+
+                                    <div class="sale-item-name">
+                                        {{ item.product_name }}
+                                    </div>
+
+                                    <div class="sale-item-detail">
+
+                                        ₹{{ "%.2f"|format(item.unit_price) }}
+
+                                        ×
+
+                                        {{ item.quantity }}
+
+                                    </div>
+
+                                </div>
+
+
+                                <div class="sale-item-total">
+
+                                    ₹{{ "%.2f"|format(item.total_price) }}
+
+                                </div>
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-title">
+                No matching sales found
+            </div>
+
+            <div class="empty-state-text">
+                Try changing or clearing the filters.
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}
+Dashboard - Event POS
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <div>
+        <h1>Dashboard</h1>
+        <p>Today's sales overview</p>
+    </div>
+
+    <a href="{{ url_for('new_sale') }}">
+        <button type="button">
+            + New Sale
+        </button>
+    </a>
+
+</div>
+
+
+<div class="summary-grid">
+
+    <div class="summary-card">
+
+        <div class="summary-label">
+            Today's Orders
+        </div>
+
+        <div class="summary-value">
+            {{ orders }}
+        </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <div class="summary-label">
+            Cash Sales
+        </div>
+
+        <div class="summary-value">
+            ₹{{ "%.2f"|format(cash_total) }}
+        </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <div class="summary-label">
+            UPI Sales
+        </div>
+
+        <div class="summary-value">
+            ₹{{ "%.2f"|format(upi_total) }}
+        </div>
+
+    </div>
+
+
+    <div class="summary-card">
+
+        <div class="summary-label">
+            Total Sales
+        </div>
+
+        <div class="summary-value">
+            ₹{{ "%.2f"|format(total_sales) }}
+        </div>
+
+    </div>
+
+</div>
+
+
+<div style="height: 18px;"></div>
+
+
+<div class="card">
+
+    <h2 style="margin-top: 0;">
+        Top Selling Items Today
+    </h2>
+
+    {% if top_items %}
+
+        {% for item_name, quantity in top_items %}
+
+            <div class="top-item-row">
+
+                <div>
+
+                    <div class="top-item-name">
+                        {{ item_name }}
+                    </div>
+
+                    <div class="top-item-sub">
+                        Quantity Sold
+                    </div>
+
+                </div>
+
+                <div class="top-item-qty">
+                    {{ quantity }}
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <div class="empty-state-title">
+                No sales yet today
+            </div>
+
+            <div class="empty-state-text">
+                Complete your first order to see top-selling products here.
+            </div>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<div style="height: 18px;"></div>
+
+
+<div class="dashboard-actions">
+
+    <a
+        href="{{ url_for('new_sale') }}"
+        class="action-card"
+    >
+
+        <div class="action-title">
+            New Sale
+        </div>
+
+        <div class="action-text">
+            Create a new customer order
+        </div>
+
+    </a>
+
+
+    {% if current_user.role == "admin" %}
+
+    <a
+        href="{{ url_for('products') }}"
+        class="action-card"
+    >
+
+        <div class="action-title">
+            Products
+        </div>
+
+        <div class="action-text">
+            Manage prices and discounts
+        </div>
+
+    </a>
+
+    {% endif %}
+
+
+    <a
+        href="{{ url_for('sales_history') }}"
+        class="action-card"
+    >
+
+        <div class="action-title">
+            Sales History
+        </div>
+
+        <div class="action-text">
+            Review orders and export Excel
+        </div>
+
+    </a>
+
+</div>
+
+{% endblock %}
